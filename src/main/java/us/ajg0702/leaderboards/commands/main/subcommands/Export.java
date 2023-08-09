@@ -1,17 +1,17 @@
 package us.ajg0702.leaderboards.commands.main.subcommands;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.bukkit.Bukkit;
 import us.ajg0702.commands.CommandSender;
 import us.ajg0702.commands.SubCommand;
 import us.ajg0702.leaderboards.LeaderboardPlugin;
-import us.ajg0702.leaderboards.cache.helpers.DbRow;
 
-import java.io.*;
-import java.sql.SQLException;
-import java.util.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 
 import static us.ajg0702.leaderboards.LeaderboardPlugin.message;

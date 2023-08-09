@@ -1,6 +1,5 @@
 package us.ajg0702.leaderboards.commands.main.subcommands;
 
-import org.bukkit.Bukkit;
 import us.ajg0702.commands.CommandSender;
 import us.ajg0702.commands.SubCommand;
 import us.ajg0702.leaderboards.LeaderboardPlugin;

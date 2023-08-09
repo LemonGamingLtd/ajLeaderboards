@@ -1,10 +1,11 @@
 package us.ajg0702.leaderboards.utils;
 
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import us.ajg0702.leaderboards.LeaderboardPlugin;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
 
 public class OfflineUpdater {
     private final Deque<OfflinePlayer> offlinePlayerQueue = new ArrayDeque<>();

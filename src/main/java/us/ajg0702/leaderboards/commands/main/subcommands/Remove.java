@@ -1,17 +1,16 @@
 package us.ajg0702.leaderboards.commands.main.subcommands;
 
-import org.bukkit.Bukkit;
 import us.ajg0702.commands.CommandSender;
 import us.ajg0702.commands.SubCommand;
 import us.ajg0702.leaderboards.Debug;
 import us.ajg0702.leaderboards.LeaderboardPlugin;
 
-import static us.ajg0702.leaderboards.LeaderboardPlugin.message;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static us.ajg0702.leaderboards.LeaderboardPlugin.message;
 
 public class Remove extends SubCommand {
     private final LeaderboardPlugin plugin;
