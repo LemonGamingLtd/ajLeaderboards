@@ -18,7 +18,7 @@ public class OfflineUpdater {
         offlinePlayerQueue.addAll(Arrays.asList(players));
         started = offlinePlayerQueue.size();
 
-        Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
+        plugin.getScheduler().getImpl().runAsync(() -> {
             while(!offlinePlayerQueue.isEmpty() && !plugin.isShuttingDown()) {
                 OfflinePlayer player = offlinePlayerQueue.pop();
                 plugin.getCache().updateStat(board, player);

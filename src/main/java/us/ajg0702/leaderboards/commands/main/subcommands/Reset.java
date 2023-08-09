@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static us.ajg0702.leaderboards.LeaderboardPlugin.message;
 
@@ -53,12 +54,12 @@ public class Reset extends SubCommand {
                     "</b></green></click>"));
             confirmResets.put(sender.getHandle(), board);
             Debug.info("Added confirmDelete: "+ confirmResets.keySet().size());
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getScheduler().getImpl().runLater(() -> {
                 if(confirmResets.containsKey(sender.getHandle()) && confirmResets.get(sender.getHandle()).equals(board)) {
                     confirmResets.remove(sender.getHandle());
                 }
 
-            }, 15*20);
+            }, 15L, TimeUnit.SECONDS);
         } else {
             List<String> removingBoards = board.equals("*") ? plugin.getCache().getBoards() : Collections.singletonList(board);
             for (String removingBoard : removingBoards) {

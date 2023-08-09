@@ -34,7 +34,7 @@ public class UpdatePlayer extends SubCommand {
             sender.sendMessage(message("&cPlease provide a board and player to update\n&7Usage: /"+label+" update <board> <player>"));
             return;
         }
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getScheduler().getImpl().runAsync(() -> {
             String board = args[0];
             if(!plugin.getCache().boardExists(board)) {
                 sender.sendMessage(message("&cThe board '"+board+"' does not exist."));

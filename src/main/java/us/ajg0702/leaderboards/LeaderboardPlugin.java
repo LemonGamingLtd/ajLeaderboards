@@ -1,5 +1,7 @@
 package us.ajg0702.leaderboards;
 
+import com.tcoded.folialib.FoliaLib;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import io.github.slimjar.app.builder.ApplicationBuilder;
 import io.github.slimjar.resolver.data.Repository;
 import io.github.slimjar.resolver.mirrors.SimpleMirrorSelector;
@@ -13,14 +15,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitWorker;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.serialize.SerializationException;
 import us.ajg0702.commands.CommandSender;
 import us.ajg0702.commands.platforms.bukkit.BukkitCommand;
 import us.ajg0702.commands.platforms.bukkit.BukkitSender;
-import us.ajg0702.leaderboards.boards.keys.BoardType;
 import us.ajg0702.leaderboards.boards.StatEntry;
 import us.ajg0702.leaderboards.boards.TimedType;
 import us.ajg0702.leaderboards.boards.TopManager;
@@ -58,8 +58,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class LeaderboardPlugin extends JavaPlugin {
 
@@ -81,6 +79,8 @@ public class LeaderboardPlugin extends JavaPlugin {
     private boolean vault;
     private Chat vaultChat;
 
+    private FoliaLib scheduler;
+
     private boolean shuttingDown = false;
 
     @Override
@@ -100,10 +100,10 @@ public class LeaderboardPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-
         if(isShuttingDown()) {
             throw new IllegalStateException("Reload was used! ajLeaderboards does not support this!");
         }
+        scheduler = new FoliaLib(this);
         StatEntry.setPlugin(this);
 
         BukkitCommand bukkitMainCommand = new BukkitCommand(new MainCommand(this));
@@ -151,7 +151,7 @@ public class LeaderboardPlugin extends JavaPlugin {
 
         TimeUtils.setStrings(messages);
 
-        Bukkit.getScheduler().runTask(this, () -> {
+        getScheduler().getImpl().runNextTick(() -> {
             if(Bukkit.getPluginManager().isPluginEnabled("Vault")) {
                 RegisteredServiceProvider<Chat> rsp = getServer().getServicesManager().getRegistration(Chat.class);
                 if(rsp == null) {
@@ -182,12 +182,10 @@ public class LeaderboardPlugin extends JavaPlugin {
 
         reloadInterval();
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, this::scheduleResets, 0, 15 * 60 * 20);
-        Bukkit.getScheduler().runTaskTimerAsynchronously(
-                this,
+        getScheduler().getImpl().runTimerAsync(this::scheduleResets, 1L, 15L, TimeUnit.MINUTES);
+        getScheduler().getImpl().runTimerAsync(
                 () -> offlineUpdaters.forEach((b, u) -> u.progressLog()),
-                5 * 20,
-                30 * 20
+                5L, 30L, TimeUnit.SECONDS
         );
 
         Metrics metrics = new Metrics(this, 9338);
@@ -219,7 +217,7 @@ public class LeaderboardPlugin extends JavaPlugin {
     public void onDisable() {
         shuttingDown = true;
         if(getContextLoader() != null) getContextLoader().checkReload(false);
-        Bukkit.getScheduler().cancelTasks(this);
+        getScheduler().getImpl().cancelAllTasks();
         if(getTopManager() != null) getTopManager().shutdown();
 
         if(getCache() != null) {
@@ -245,35 +243,28 @@ public class LeaderboardPlugin extends JavaPlugin {
         getLogger().info("Remaining workers killed");
 
         getLogger().info("ajLeaderboards v"+getDescription().getVersion()+" disabled.");
-
-        Bukkit.getScheduler().getActiveWorkers().forEach(bukkitWorker -> {
-            Debug.info("Active worker: "+bukkitWorker.getOwner().getDescription().getName()+" "+bukkitWorker.getTaskId());
-            for (StackTraceElement stackTraceElement : bukkitWorker.getThread().getStackTrace()) {
-                Debug.info(" - "+stackTraceElement);
-            }
-        });
     }
 
     private void killWorkers(int waitForDeath) {
-        List<BukkitWorker> workers = new ArrayList<>(Bukkit.getScheduler().getActiveWorkers());
-        List<Integer> killedWorkers = new ArrayList<>();
-        workers.forEach(bukkitWorker -> {
-            if(!bukkitWorker.getOwner().equals(this)) return;
-            int id = bukkitWorker.getTaskId();
-            if(killedWorkers.contains(id)) return;
-            Debug.info("Got worker "+id);
-            try {
-                bukkitWorker.getThread().interrupt();
-                Debug.info("Interupted");
-                bukkitWorker.getThread().join(waitForDeath);
-                Debug.info("Death");
-            } catch(SecurityException e) {
-                Debug.info("denied: "+e.getMessage());
-            } catch (InterruptedException ignored) {
-                Debug.info("threw interupted exception on "+id);
-            }
-            killedWorkers.add(id);
-        });
+//        List<BukkitWorker> workers = new ArrayList<>(Bukkit.getScheduler().getActiveWorkers());
+//        List<Integer> killedWorkers = new ArrayList<>();
+//        workers.forEach(bukkitWorker -> {
+//            if(!bukkitWorker.getOwner().equals(this)) return;
+//            int id = bukkitWorker.getTaskId();
+//            if(killedWorkers.contains(id)) return;
+//            Debug.info("Got worker "+id);
+//            try {
+//                bukkitWorker.getThread().interrupt();
+//                Debug.info("Interupted");
+//                bukkitWorker.getThread().join(waitForDeath);
+//                Debug.info("Death");
+//            } catch(SecurityException e) {
+//                Debug.info("denied: "+e.getMessage());
+//            } catch (InterruptedException ignored) {
+//                Debug.info("threw interupted exception on "+id);
+//            }
+//            killedWorkers.add(id);
+//        });
     }
 
     public Config getAConfig() {
@@ -336,15 +327,19 @@ public class LeaderboardPlugin extends JavaPlugin {
         return offlineUpdaters;
     }
 
-    int updateTaskId = -1;
+    public FoliaLib getScheduler() {
+        return scheduler;
+    }
+
+    WrappedTask updateTask = null;
     public void reloadInterval() {
-        if(updateTaskId != -1) {
+        if(updateTask != null) {
             try {
-                Bukkit.getScheduler().cancelTask(updateTaskId);
+                updateTask.cancel();
             } catch(IllegalArgumentException ignored) {}
-            updateTaskId = -1;
+            updateTask = null;
         }
-        updateTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+        updateTask = getScheduler().getImpl().runTimerAsync(() -> {
             if(!config.getBoolean("update-stats")) return;
             if(getTopManager().getFetchingAverage() > 100) {
                 getLogger().warning("Database is overloaded! Skipping update of players.");
@@ -354,13 +349,13 @@ public class LeaderboardPlugin extends JavaPlugin {
                 if(isShuttingDown()) return;
                 getTopManager().submit(() -> getCache().updatePlayerStats(p));
             }
-        }, 10*20, config.getInt("stat-refresh")).getTaskId();
-        Debug.info("Update task id is "+updateTaskId);
+        }, 10L, config.getInt("stat-refresh") / 20L, TimeUnit.SECONDS);
+        Debug.info("Update task id is " + updateTask);
     }
 
-    final HashMap<TimedType, Integer> resetIds = new HashMap<>();
+    final HashMap<TimedType, WrappedTask> resetIds = new HashMap<>();
     public void scheduleResets() {
-        resetIds.values().forEach(Bukkit.getScheduler()::cancelTask);
+        resetIds.values().forEach(WrappedTask::cancel);
         resetIds.clear();
 
         for(TimedType type : TimedType.values()) {
@@ -395,7 +390,7 @@ public class LeaderboardPlugin extends JavaPlugin {
         }
 
         if(resetNow.size() > 0) {
-            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            getScheduler().getImpl().runAsync(() -> {
                 try {
                     for (String board : resetNow) {
                         cache.reset(board, type);
@@ -419,8 +414,7 @@ public class LeaderboardPlugin extends JavaPlugin {
         Debug.info(TimeUtils.formatTimeSeconds(secsTilNextReset)+" until the reset for "+type.lowerName()+" (next formatted: "+type.getNextReset().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.RFC_1123_DATE_TIME)+" next: "+nextReset+")");
 
         if(isShuttingDown()) return;
-        int taskId = Bukkit.getScheduler().runTaskLaterAsynchronously(
-                this,
+        WrappedTask task = getScheduler().getImpl().runLaterAsync(
                 () -> {
                     try {
                         for (String board : getTopManager().getBoards()) {
@@ -431,9 +425,9 @@ public class LeaderboardPlugin extends JavaPlugin {
                         getLogger().log(Level.WARNING, "Unable to reset "+type+": (interupted/exception)", e);
                     }
                 },
-                secsTilNextReset*20L
-        ).getTaskId();
-        resetIds.put(type, taskId);
+                secsTilNextReset, TimeUnit.SECONDS
+        );
+        resetIds.put(type, task);
     }
 
     public boolean validatePlaceholder(String placeholder, CommandSender sayOutput) {

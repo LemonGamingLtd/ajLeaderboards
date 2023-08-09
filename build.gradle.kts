@@ -20,6 +20,7 @@ repositories {
     maven { url = uri("https://repo.citizensnpcs.co/") }
     maven { url = uri("https://oss.sonatype.org/content/groups/public/") }
     maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
+    maven { url = uri("https://nexuslite.gcnt.net/repos/other/") }
 }
 
 dependencies {
@@ -41,6 +42,8 @@ dependencies {
     implementation("us.ajg0702:ajUtils:1.2.12")
     implementation("us.ajg0702.commands.platforms.bukkit:bukkit:1.0.0")
     implementation("us.ajg0702.commands.api:api:1.0.0")
+
+    implementation("com.tcoded:FoliaLib:0.2.4")
 
     compileOnly("net.luckperms:api:5.4")
 

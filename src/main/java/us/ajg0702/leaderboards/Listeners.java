@@ -7,6 +7,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 
+import java.util.concurrent.TimeUnit;
+
 import static us.ajg0702.leaderboards.LeaderboardPlugin.message;
 
 public class Listeners implements Listener {
@@ -20,7 +22,7 @@ public class Listeners implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         if(plugin.getCache().getMethod().getName().equals("sqlite") && e.getPlayer().hasPermission("ajleaderboards.use")) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getScheduler().getImpl().runAtEntityLater(e.getPlayer(), () -> {
                 plugin.getAdventure().player(e.getPlayer())
                         .sendMessage(message(
                                 "\n&6[ajLeaderboards] &cSQLite is not recommended and will be removed! &7Please switch to h2 for a faster (and more stable) cache storage.\n" +
@@ -32,11 +34,11 @@ public class Listeners implements Listener {
                                         "</click>" +
                                         "</hover>\n"
                         ));
-            }, 40);
+            }, 2L, TimeUnit.SECONDS);
         }
         if(!plugin.getAConfig().getBoolean("update-stats")) return;
         if(!plugin.getAConfig().getBoolean("update-on-join")) return;
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> plugin.getCache().updatePlayerStats(e.getPlayer()));
+        plugin.getScheduler().getImpl().runAtEntity(e.getPlayer(), () -> plugin.getCache().updatePlayerStats(e.getPlayer()));
     }
 
     @EventHandler

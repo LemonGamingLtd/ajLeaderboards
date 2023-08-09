@@ -176,8 +176,8 @@ public class ArmorStandManager {
         if(world == null) {
             throw new IllegalArgumentException("Invalid world");
         }
-        Bukkit.getScheduler().runTask(
-                plugin,
+        plugin.getScheduler().getImpl().runAtLocation(
+                loc,
                 () -> future.complete(world.getNearbyEntities(loc, 1, 1, 1))
         );
         return future;

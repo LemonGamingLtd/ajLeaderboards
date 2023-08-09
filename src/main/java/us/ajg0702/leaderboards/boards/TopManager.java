@@ -50,12 +50,12 @@ public class TopManager {
         );
         fetchService.allowCoreThreadTimeOut(true);
         fetchService.setThreadFactory(ThreadFactoryProxy.getDefaultThreadFactory("AJLBFETCH"));
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+        plugin.getScheduler().getImpl().runTimerAsync(() -> {
             rolling.add(getQueuedTasks()+getActiveFetchers());
             if(rolling.size() > 50) {
                 rolling.remove(0);
             }
-        }, 0, 2);
+        }, 1L, 100L, TimeUnit.MILLISECONDS);
 
         boardCache = initialBoards;
     }

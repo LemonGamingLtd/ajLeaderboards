@@ -11,6 +11,7 @@ import static us.ajg0702.leaderboards.LeaderboardPlugin.message;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Remove extends SubCommand {
     private final LeaderboardPlugin plugin;
@@ -50,14 +51,14 @@ public class Remove extends SubCommand {
                     "</b></green></click>"));
             confirmDeletes.put(sender.getHandle(), board);
             Debug.info("Added confirmDelete: "+confirmDeletes.keySet().size());
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getScheduler().getImpl().runLater(() -> {
                 Debug.info("Removing confirmDelete");
                 if(confirmDeletes.containsKey(sender.getHandle()) && confirmDeletes.get(sender.getHandle()).equals(board)) {
                     confirmDeletes.remove(sender.getHandle());
                     Debug.info("Removed confirmDelete");
                 }
 
-            }, 15*20);
+            }, 15L, TimeUnit.SECONDS);
         } else {
             confirmDeletes.remove(sender);
             if(plugin.getCache().removeBoard(board)) {

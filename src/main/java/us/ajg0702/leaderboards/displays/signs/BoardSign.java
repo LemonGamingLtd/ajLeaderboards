@@ -47,7 +47,7 @@ public class BoardSign {
 
     private Future<Sign> setSign() {
         CompletableFuture<Sign> future = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getScheduler().getImpl().runAtLocation(location, () -> {
             BlockState state = location.getBlock().getState();
             if(!(state instanceof Sign)) {
                 sign = null;
@@ -112,7 +112,7 @@ public class BoardSign {
             future.completeExceptionally(new InterruptedException());
             return future;
         }
-        Bukkit.getScheduler().runTask(plugin, () -> future.complete(location.getBlock().getType().toString()));
+        plugin.getScheduler().getImpl().runAtLocation(location, () -> future.complete(location.getBlock().getType().toString()));
         return future;
     }
 
