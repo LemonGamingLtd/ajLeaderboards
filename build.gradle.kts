@@ -43,7 +43,7 @@ dependencies {
     implementation("us.ajg0702.commands.platforms.bukkit:bukkit:1.0.0")
     implementation("us.ajg0702.commands.api:api:1.0.0")
 
-    implementation("com.tcoded:FoliaLib:0.2.4")
+    implementation("com.tcoded:FoliaLib:0.2.3")
 
     compileOnly("net.luckperms:api:5.4")
 
@@ -70,6 +70,7 @@ tasks.withType<ProcessResources> {
 tasks.slimJar {
     relocate("org.h2", "us.ajg0702.leaderboards.libs.h2")
     relocate("com.zaxxer.hikari", "us.ajg0702.leaderboards.libs.hikari")
+    relocate("com.tcoded.folialib", "us.ajg0702.leaderboards.libs.folialib")
 }
 
 tasks.shadowJar {

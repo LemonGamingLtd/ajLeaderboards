@@ -1,7 +1,7 @@
 package us.ajg0702.leaderboards;
 
 import com.tcoded.folialib.FoliaLib;
-import com.tcoded.folialib.wrapper.task.WrappedTask;
+import com.tcoded.folialib.wrapper.WrappedTask;
 import io.github.slimjar.app.builder.ApplicationBuilder;
 import io.github.slimjar.resolver.data.Repository;
 import io.github.slimjar.resolver.mirrors.SimpleMirrorSelector;

@@ -1,6 +1,6 @@
 package us.ajg0702.leaderboards.displays.signs;
 
-import com.tcoded.folialib.wrapper.task.WrappedTask;
+import com.tcoded.folialib.wrapper.WrappedTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Location;
