@@ -1,21 +1,28 @@
 package us.ajg0702.leaderboards.utils;
 
 import org.bukkit.OfflinePlayer;
+import us.ajg0702.commands.CommandSender;
 import us.ajg0702.leaderboards.LeaderboardPlugin;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
+import javax.annotation.Nullable;
+
+import static us.ajg0702.leaderboards.LeaderboardPlugin.message;
 
 public class OfflineUpdater {
     private final Deque<OfflinePlayer> offlinePlayerQueue = new ArrayDeque<>();
     private final LeaderboardPlugin plugin;
+    private final CommandSender reportTo;
     private final int started;
     private final String board;
+    private long startedTime;
 
-    public OfflineUpdater(LeaderboardPlugin plugin, String board, OfflinePlayer[] players) {
+    public OfflineUpdater(LeaderboardPlugin plugin, String board, OfflinePlayer[] players, @Nullable CommandSender reportTo) {
         this.plugin = plugin;
         this.board = board;
+        this.reportTo = reportTo;
         offlinePlayerQueue.addAll(Arrays.asList(players));
         started = offlinePlayerQueue.size();
 
@@ -27,7 +34,14 @@ public class OfflineUpdater {
             if(plugin.isShuttingDown()) {
                 plugin.getLogger().info("[OfflineUpdater] " + board + ": Canceling due to plugin shutdown");
             } else {
-                plugin.getLogger().info("[OfflineUpdater] " + board + ": Done!");
+                long duration = System.currentTimeMillis() - startedTime;
+                double durationSeconds = Math.round(duration / 10d) / 100d;
+                plugin.getLogger().info("[OfflineUpdater] " + board + ": Finished in " + durationSeconds + "s " + duration);
+                if(reportTo != null) {
+                    reportTo.sendMessage(message(
+                            "&aFinished updating all offline players for &f" + board + " &ain&f " + durationSeconds + "&as"
+                    ));
+                }
             }
             plugin.getOfflineUpdaters().remove(board, this);
         });

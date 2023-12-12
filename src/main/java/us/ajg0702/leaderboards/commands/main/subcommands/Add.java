@@ -6,6 +6,7 @@ import us.ajg0702.leaderboards.LeaderboardPlugin;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 
 import static us.ajg0702.leaderboards.LeaderboardPlugin.message;
@@ -19,8 +20,8 @@ public class Add extends SubCommand {
     }
 
     @Override
-    public List<String> autoComplete(CommandSender commandSender, String[] strings) {
-        return plugin.getCache().getNonExistantBoards();
+    public List<String> autoComplete(CommandSender commandSender, String[] args) {
+        return filterCompletion(plugin.getCache().getNonExistantBoards(), args[0]);
     }
 
     @Override
@@ -37,7 +38,11 @@ public class Add extends SubCommand {
                 return;
             }
             if(!plugin.validatePlaceholder(placeholder, sender)) {
+                String lowerPlaceholder = placeholder.toLowerCase(Locale.ROOT);
                 sender.sendMessage(message("&cThe placeholder '"+placeholder+"' does not give a numerical value. Make sure that the placeholder returns a number that is not formatted."));
+                if(lowerPlaceholder.contains("top") || lowerPlaceholder.contains("lb")) {
+                    sender.sendMessage(message("&eThat placeholder looks like it might be an existing top placeholder! Please read step 1 of the setup guide!"));
+                }
                 return;
             }
             boolean r = plugin.getCache().createBoard(placeholder);

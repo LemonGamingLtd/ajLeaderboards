@@ -39,6 +39,7 @@ import us.ajg0702.leaderboards.nms.legacy.HeadUtils;
 import us.ajg0702.leaderboards.placeholders.PlaceholderExpansion;
 import us.ajg0702.leaderboards.utils.Exporter;
 import us.ajg0702.leaderboards.utils.OfflineUpdater;
+import us.ajg0702.leaderboards.utils.ResetSaver;
 import us.ajg0702.leaderboards.utils.SlimJarLogger;
 import us.ajg0702.utils.common.Config;
 import us.ajg0702.utils.common.Messages;
@@ -71,6 +72,7 @@ public class LeaderboardPlugin extends JavaPlugin {
     private HeadUtils headUtils;
     private ArmorStandManager armorStandManager;
     private LuckpermsContextLoader contextLoader;
+    private ResetSaver resetSaver;
     private final Exporter exporter = new Exporter(this);
     private final PlaceholderFormatter placeholderFormatter = new PlaceholderFormatter(this);
 
@@ -168,6 +170,8 @@ public class LeaderboardPlugin extends JavaPlugin {
         headManager = new HeadManager(this);
         headUtils = new HeadUtils(getLogger());
         armorStandManager = new ArmorStandManager(this);
+
+        resetSaver = new ResetSaver(this);
 
         cache = new Cache(this);
 
@@ -327,6 +331,10 @@ public class LeaderboardPlugin extends JavaPlugin {
         return offlineUpdaters;
     }
 
+    public ResetSaver getResetSaver() {
+        return resetSaver;
+    }
+
     public FoliaLib getScheduler() {
         return scheduler;
     }
@@ -440,6 +448,7 @@ public class LeaderboardPlugin extends JavaPlugin {
         try {
             getPlaceholderFormatter().toDouble(out, placeholder);
         } catch(NumberFormatException e) {
+            Debug.info(e.getMessage());
             if(sayOutput != null) {
                 sayOutput.sendMessage(message("&7Returned: "+out.replaceAll("§", "&")));
             }
